@@ -1,0 +1,57 @@
+version: '2'
+services:
+  app:
+    build:
+      context: ./docker/app
+      dockerfile: Dockerfile
+    image: quayside/app
+    ports:
+      - "${APP_PORT}:80"
+    environment:
+      CONTAINER_ENV: "${APP_ENV}"
+      WWWUSER: "${WWWUSER}"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - quayside
+  node:
+    build:
+      context: ./docker/node
+      dockerfile: Dockerfile
+#      args:
+#        uid: "${WWWUSER}"
+    image: quayside/node
+    user: node
+    volumes:
+      - .:/var/www/html
+    networks:
+      - quayside
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "${MYSQL_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - quaysidemysql:/var/lib/mysql
+      # - ./docker/mysql/conf.d:/etc/mysql/conf.d
+      # - ./docker/mysql/logs:/var/log/mysql
+    networks:
+      - quayside
+  redis:
+    image: redis:alpine
+    volumes:
+      - quaysideredis:/data
+    networks:
+      - quayside
+networks:
+  quayside:
+    driver: "bridge"
+volumes:
+  quaysidemysql:
+    driver: "local"
+  quaysideredis:
+    driver: "local"
